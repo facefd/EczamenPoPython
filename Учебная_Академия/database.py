@@ -1,7 +1,8 @@
-# Фёдоров Влад
+# Фёдоров влад
+
 import sqlite3
 
-DB_NAME = "academyTop.db"
+DB_NAME = "academyTOP.db"
 
 
 def connect():
@@ -14,34 +15,34 @@ def init_db():
         cursor.execute("PRAGMA foreign_keys = ON")
 
         tables = [
-            """CREATE TABLE IF NOT EXISTS Студенты (
+            """CREATE TABLE IF NOT EXISTS Students (
                 id INTEGER PRIMARY KEY,
-                имя TEXT NOT NULL,
+                name TEXT NOT NULL,
                 email TEXT UNIQUE
             )""",
-            """CREATE TABLE IF NOT EXISTS Курсы (
+            """CREATE TABLE IF NOT EXISTS Courses (
                 id INTEGER PRIMARY KEY,
-                название TEXT NOT NULL,
-                описание TEXT
+                title TEXT NOT NULL,
+                description TEXT
             )""",
-            """CREATE TABLE IF NOT EXISTS Преподаватели (
+            """CREATE TABLE IF NOT EXISTS Instructors (
                 id INTEGER PRIMARY KEY,
-                имя TEXT NOT NULL,
+                name TEXT NOT NULL,
                 email TEXT UNIQUE
             )""",
-            """CREATE TABLE IF NOT EXISTS ЗаписиНаКурсы (
+            """CREATE TABLE IF NOT EXISTS Enrollments (
                 id INTEGER PRIMARY KEY,
-                id_студента INTEGER NOT NULL,
-                id_курса INTEGER NOT NULL,
-                FOREIGN KEY (id_студента) REFERENCES Студенты(id),
-                FOREIGN KEY (id_курса) REFERENCES Курсы(id),
-                UNIQUE(id_студента, id_курса)
+                student_id INTEGER NOT NULL,
+                course_id INTEGER NOT NULL,
+                FOREIGN KEY (student_id) REFERENCES Students(id),
+                FOREIGN KEY (course_id) REFERENCES Courses(id),
+                UNIQUE(student_id, course_id)
             )""",
-            """CREATE TABLE IF NOT EXISTS Оценки (
+            """CREATE TABLE IF NOT EXISTS Grades (
                 id INTEGER PRIMARY KEY,
-                id_записи INTEGER NOT NULL UNIQUE,
-                оценка REAL NOT NULL CHECK(оценка >= 0 AND оценка <= 100),
-                FOREIGN KEY (id_записи) REFERENCES ЗаписиНаКурсы(id)
+                enrollment_id INTEGER NOT NULL UNIQUE,
+                grade REAL NOT NULL CHECK(grade >= 0 AND grade <= 100),
+                FOREIGN KEY (enrollment_id) REFERENCES Enrollments(id)
             )"""
         ]
 
@@ -51,117 +52,117 @@ def init_db():
         conn.commit()
 
 
-# --- Студенты ---
-def добавить_студента(имя, email):
+# --- Students ---
+def add_student(name, email):
     with connect() as conn:
         cursor = conn.cursor()
         try:
-            cursor.execute("INSERT INTO Студенты (имя, email) VALUES (?, ?)", (имя, email))
+            cursor.execute("INSERT INTO Students (name, email) VALUES (?, ?)", (name, email))
         except sqlite3.IntegrityError:
-            raise ValueError("Email уже существует")
+            raise ValueError("Email already exists")
 
 
-def получить_всех_студентов():
+def get_all_students():
     with connect() as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT id, имя, email FROM Студенты")
+        cursor.execute("SELECT id, name, email FROM Students")
         return cursor.fetchall()
 
 
-def обновить_студента(student_id, имя, email):
+def update_student(student_id, name, email):
     with connect() as conn:
         cursor = conn.cursor()
-        cursor.execute("UPDATE Студенты SET имя=?, email=? WHERE id=?", (имя, email, student_id))
+        cursor.execute("UPDATE Students SET name=?, email=? WHERE id=?", (name, email, student_id))
 
 
-def удалить_студента(student_id):
+def delete_student(student_id):
     with connect() as conn:
         cursor = conn.cursor()
-        cursor.execute("DELETE FROM Студенты WHERE id=?", (student_id,))
+        cursor.execute("DELETE FROM Students WHERE id=?", (student_id,))
 
 
-# --- Курсы ---
-def добавить_курс(название, описание=None):
+# --- Courses ---
+def add_course(title, description=None):
     with connect() as conn:
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO Курсы (название, описание) VALUES (?, ?)", (название, описание))
+        cursor.execute("INSERT INTO Courses (title, description) VALUES (?, ?)", (title, description))
 
 
-def получить_все_курсы():
+def get_all_courses():
     with connect() as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT id, название, описание FROM Курсы")
+        cursor.execute("SELECT id, title, description FROM Courses")
         return cursor.fetchall()
 
 
-# --- Преподаватели ---
-def добавить_преподавателя(имя, email):
+# --- Instructors ---
+def add_instructor(name, email):
     with connect() as conn:
         cursor = conn.cursor()
         try:
-            cursor.execute("INSERT INTO Преподаватели (имя, email) VALUES (?, ?)", (имя, email))
+            cursor.execute("INSERT INTO Instructors (name, email) VALUES (?, ?)", (name, email))
         except sqlite3.IntegrityError:
-            raise ValueError("Email преподавателя уже занят")
+            raise ValueError("Instructor's email is already taken")
 
 
-def получить_всех_преподавателей():
+def get_all_instructors():
     with connect() as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT id, имя, email FROM Преподаватели")
+        cursor.execute("SELECT id, name, email FROM Instructors")
         return cursor.fetchall()
 
 
-# --- Записи на курсы ---
-def добавить_запись(student_id, course_id):
+# --- Enrollments ---
+def add_enrollment(student_id, course_id):
     with connect() as conn:
         cursor = conn.cursor()
         try:
-            cursor.execute("INSERT INTO ЗаписиНаКурсы (id_студента, id_курса) VALUES (?, ?)",
+            cursor.execute("INSERT INTO Enrollments (student_id, course_id) VALUES (?, ?)",
                            (student_id, course_id))
         except sqlite3.IntegrityError:
-            raise ValueError("Студент уже записан на этот курс")
+            raise ValueError("Student is already enrolled in this course")
 
 
-def получить_всех_записей():
+def get_all_enrollments():
     with connect() as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM ЗаписиНаКурсы")
+        cursor.execute("SELECT * FROM Enrollments")
         return cursor.fetchall()
 
 
-# --- Оценки ---
-def выставить_оценку(enrollment_id, grade):
+# --- Grades ---
+def set_grade(enrollment_id, grade):
     with connect() as conn:
         cursor = conn.cursor()
         try:
-            cursor.execute("INSERT OR REPLACE INTO Оценки (id_записи, оценка) VALUES (?, ?)",
+            cursor.execute("INSERT OR REPLACE INTO Grades (enrollment_id, grade) VALUES (?, ?)",
                            (enrollment_id, grade))
         except sqlite3.IntegrityError:
-            raise ValueError("Некорректная запись или оценка")
+            raise ValueError("Invalid enrollment or grade")
 
 
-# --- Аналитика ---
-def получить_среднюю_оценку_по_курсу(course_id):
+# --- Analytics ---
+def get_average_grade_by_course(course_id):
     with connect() as conn:
         cursor = conn.cursor()
         cursor.execute("""
-            SELECT AVG(o.оценка)
-            FROM Оценки o
-            JOIN ЗаписиНаКурсы z ON o.id_записи = z.id
-            WHERE z.id_курса = ?
+            SELECT AVG(g.grade)
+            FROM Grades g
+            JOIN Enrollments e ON g.enrollment_id = e.id
+            WHERE e.course_id = ?
         """, (course_id,))
         result = cursor.fetchone()[0]
         return round(result, 2) if result else None
 
 
-def получить_успеваемость_студентов():
+def get_student_performance():
     with connect() as conn:
         cursor = conn.cursor()
         cursor.execute("""
-            SELECT s.имя, AVG(o.оценка) AS avg_grade
-            FROM Оценки o
-            JOIN ЗаписиНаКурсы z ON o.id_записи = z.id
-            JOIN Студенты s ON z.id_студента = s.id
-            GROUP BY s.id, s.имя
+            SELECT s.name, AVG(g.grade) AS avg_grade
+            FROM Grades g
+            JOIN Enrollments e ON g.enrollment_id = e.id
+            JOIN Students s ON e.student_id = s.id
+            GROUP BY s.id, s.name
         """)
         return cursor.fetchall()
