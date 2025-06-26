@@ -1,6 +1,6 @@
 # Михайлов Никита
 from tkinter import ttk, messagebox, END
-from database import добавить_преподавателя, получить_всех_преподавателей
+from database import add_instructor, get_all_instructors
 
 
 class InstructorManager:
@@ -18,10 +18,10 @@ class InstructorManager:
         self.email_entry = ttk.Entry(master, width=30)
         self.email_entry.grid(row=1, column=1, padx=5, pady=5)
 
-        self.add_button = ttk.Button(master, text="Добавить преподавателя ➕", command=self.добавить_преподавателя)
+        self.add_button = ttk.Button(master, text="Добавить преподавателя ➕", command=self.add_instructor_gui)
         self.add_button.grid(row=2, column=0, columnspan=2, padx=5, pady=5, sticky='ew')
 
-        self.view_button = ttk.Button(master, text="Посмотреть всех 👀", command=self.показать_всех)
+        self.view_button = ttk.Button(master, text="Посмотреть всех 👀", command=self.show_all_instructors)
         self.view_button.grid(row=3, column=0, columnspan=2, padx=5, pady=5, sticky='ew')
 
         self.tree = ttk.Treeview(master, columns=('ID', 'Имя', 'Email'), show='headings')
@@ -35,15 +35,15 @@ class InstructorManager:
         master.grid_columnconfigure(0, weight=1)
         master.grid_columnconfigure(1, weight=1)
 
-        self.показать_всех()
+        self.show_all_instructors()
 
-    def добавить_преподавателя(self):
-        имя = self.name_entry.get().strip()
+    def add_instructor_gui(self):
+        name = self.name_entry.get().strip()
         email = self.email_entry.get().strip()
-        if имя and email:
+        if name and email:
             try:
-                добавить_преподавателя(имя, email)
-                self.показать_всех()
+                add_instructor(name, email)
+                self.show_all_instructors()
                 self.name_entry.delete(0, END)
                 self.email_entry.delete(0, END)
                 messagebox.showinfo("✅ Успех", "Преподаватель успешно добавлен!")
@@ -52,9 +52,9 @@ class InstructorManager:
         else:
             messagebox.showwarning("⚠️ Предупреждение", "Заполните все поля!")
 
-    def показать_всех(self):
+    def show_all_instructors(self):
         for item in self.tree.get_children():
             self.tree.delete(item)
-        преподаватели = получить_всех_преподавателей()
-        for instr in преподаватели:
+        instructors = get_all_instructors()
+        for instr in instructors:
             self.tree.insert('', 'end', values=instr)
