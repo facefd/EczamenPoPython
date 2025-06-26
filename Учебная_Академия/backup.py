@@ -23,7 +23,7 @@ class BackupManager:
         self.добавить_лог("📚 Готов к работе")
 
     def сделать_бэкап(self):
-        оригинальный_файл = 'school.db'
+        оригинальный_файл = 'academyTOP.db'
         if not os.path.exists(оригинальный_файл):
             self.добавить_лог("❌ Основной файл не найден")
             return
@@ -57,8 +57,8 @@ class BackupManager:
             return
 
         try:
-            sqlite3.connect('school.db').close()
-            shutil.copy2(файл, 'school.db')
+            sqlite3.connect('academyTOP.db').close()
+            shutil.copy2(файл, 'academyTOP.db')
             self.добавить_лог(f"✅ Восстановлено: {файл}")
         except Exception as e:
             self.добавить_лог(f"❌ Ошибка: {e}")
