@@ -1,6 +1,6 @@
 # Фёдоров Влад
 from tkinter import ttk, messagebox, END
-from database import добавить_курс, получить_все_курсы
+from database import add_course, get_all_courses
 
 
 class CourseManager:
@@ -18,10 +18,10 @@ class CourseManager:
         self.desc_entry = ttk.Entry(master, width=30)
         self.desc_entry.grid(row=1, column=1, padx=5, pady=5)
 
-        self.add_button = ttk.Button(master, text="Добавить курс ➕", command=self.добавить_курс_gui)
+        self.add_button = ttk.Button(master, text="Добавить курс ➕", command=self.add_course_gui)
         self.add_button.grid(row=2, column=0, columnspan=2, padx=5, pady=5, sticky='ew')
 
-        self.view_button = ttk.Button(master, text="Посмотреть все 👀", command=self.обновить_список)
+        self.view_button = ttk.Button(master, text="Посмотреть все 👀", command=self.refresh_list)
         self.view_button.grid(row=3, column=0, columnspan=2, padx=5, pady=5, sticky='ew')
 
         self.tree = ttk.Treeview(master, columns=('ID', 'Название', 'Описание'), show='headings')
@@ -35,23 +35,23 @@ class CourseManager:
         master.grid_columnconfigure(0, weight=1)
         master.grid_columnconfigure(1, weight=1)
 
-        self.обновить_список()
+        self.refresh_list()
 
-    def добавить_курс_gui(self):
-        название = self.title_entry.get().strip()
-        описание = self.desc_entry.get().strip()
-        if название:
-            добавить_курс(название, описание)
-            self.обновить_список()
+    def add_course_gui(self):
+        title = self.title_entry.get().strip()
+        description = self.desc_entry.get().strip()
+        if title:
+            add_course(title, description)
+            self.refresh_list()
             self.title_entry.delete(0, END)
             self.desc_entry.delete(0, END)
             messagebox.showinfo("✅ Успех", "Курс успешно добавлен!")
         else:
             messagebox.showwarning("⚠️ Предупреждение", "Введите название курса!")
 
-    def обновить_список(self):
+    def refresh_list(self):
         for item in self.tree.get_children():
             self.tree.delete(item)
-        курсы = получить_все_курсы()
-        for курс in курсы:
-            self.tree.insert('', 'end', values=курс)
+        courses = get_all_courses()
+        for course in courses:
+            self.tree.insert('', 'end', values=course)
