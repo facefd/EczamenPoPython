@@ -59,4 +59,4 @@ def main_menu():
 
 if __name__ == "__main__":
     init_db()
-    main_menu()
+    main_menu() 
