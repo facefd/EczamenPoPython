@@ -1,5 +1,5 @@
 # Фёдоров Влад
-from tkinter import ttk, messagebox, filedialog, END
+from tkinter import ttk, messagebox, filedialog, END, Text
 import sqlite3
 import shutil
 import os
@@ -11,58 +11,74 @@ class BackupManager:
         self.master = master
         master.title("📦 Резервное копирование")
 
-        self.backup_button = ttk.Button(master, text="Создать резервную копию 💾", command=self.сделать_бэкап)
+        # Кнопки
+        self.backup_button = ttk.Button(
+            master, text="Создать резервную копию 💾", command=self.create_backup
+        )
         self.backup_button.pack(pady=10, padx=10, fill='x')
 
-        self.restore_button = ttk.Button(master, text="Восстановить из копии 🔁", command=self.восстановить_из_копии)
+        self.restore_button = ttk.Button(
+            master, text="Восстановить из копии 🔁", command=self.restore_from_backup
+        )
         self.restore_button.pack(pady=10, padx=10, fill='x')
 
-        self.log_text = tk.Text(master, height=15, width=50)
+        # Лог
+        self.log_text = Text(master, height=15, width=50)
         self.log_text.pack(pady=10, padx=10, fill='both', expand=True)
 
-        self.добавить_лог("📚 Готов к работе")
+        self.add_log("📚 Готов к работе")
 
-    def сделать_бэкап(self):
-        оригинальный_файл = 'academyTOP.db'
-        if not os.path.exists(оригинальный_файл):
-            self.добавить_лог("❌ Основной файл не найден")
+    def create_backup(self):
+        original_file = "academyTOP.db"  # ✅ Правильное имя БД
+
+        if not os.path.exists(original_file):
+            self.add_log("❌ Основной файл не найден")
             return
 
-        папка_бэкапов = 'backups'
-        if not os.path.exists(папка_бэкапов):
-            os.makedirs(папка_бэкапов)
+        backup_folder = "backups"
+        if not os.path.exists(backup_folder):
+            os.makedirs(backup_folder)
 
-        текущее_время = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        имя_копии = f"school_backup_{текущее_время}.db"
-        путь_копии = os.path.join(папка_бэкапов, имя_копии)
+        current_time = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        backup_name = f"academyTOP_backup_{current_time}.db"
+        backup_path = os.path.join(backup_folder, backup_name)
 
         try:
-            shutil.copy2(оригинальный_файл, путь_копии)
-            self.добавить_лог(f"✅ Сохранено: {путь_копии}")
+            shutil.copy2(original_file, backup_path)
+            self.add_log(f"✅ Сохранено: {backup_path}")
         except Exception as e:
-            self.добавить_лог(f"❌ Ошибка: {e}")
+            self.add_log(f"❌ Ошибка при создании бэкапа: {e}")
 
-    def восстановить_из_копии(self):
-        папка_бэкапов = 'backups'
-        if not os.path.exists(папка_бэкапов):
-            self.добавить_лог("❌ Папка backups не найдена")
+    def restore_from_backup(self):
+        backup_folder = "backups"
+        if not os.path.exists(backup_folder):
+            self.add_log("❌ Папка backups не найдена")
             return
 
-        файл = filedialog.askopenfilename(
-            initialdir=папка_бэкапов,
+        selected_file = filedialog.askopenfilename(
+            initialdir=backup_folder,
             title="Выберите бэкап",
             filetypes=[("SQLite DB", "*.db")]
         )
-        if not файл:
+        if not selected_file:
             return
 
-        try:
-            sqlite3.connect('academyTOP.db').close()
-            shutil.copy2(файл, 'academyTOP.db')
-            self.добавить_лог(f"✅ Восстановлено: {файл}")
-        except Exception as e:
-            self.добавить_лог(f"❌ Ошибка: {e}")
+        original_file = "academyTOP.db"
 
-    def добавить_лог(self, сообщение):
-        self.log_text.insert("end", f"{сообщение}\n")
-        self.log_text.see("end")
+        try:
+            # Закрываем соединение с БД, если оно есть
+            conn = sqlite3.connect(original_file)
+            conn.execute("PRAGMA busy_timeout = 3000")
+            conn.close()
+
+            # Перезаписываем основной файл
+            shutil.copy2(selected_file, original_file)
+            self.add_log(f"✅ Восстановлено: {selected_file}")
+            messagebox.showinfo("✅ Успех", "База данных успешно восстановлена.")
+        except Exception as e:
+            messagebox.showerror("❌ Ошибка", f"Не удалось восстановить: {str(e)}")
+            self.add_log(f"❌ Ошибка при восстановлении: {e}")
+
+    def add_log(self, message):
+        self.log_text.insert(END, f"{message}\n")
+        self.log_text.see(END)
