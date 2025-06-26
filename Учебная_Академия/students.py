@@ -1,6 +1,7 @@
 # Новиков Никита
+
 from tkinter import ttk, messagebox, END
-from database import добавить_студента, получить_всех_студентов, обновить_студента, удалить_студента
+from database import add_student, get_all_students, update_student, delete_student
 
 
 class StudentManager:
@@ -18,16 +19,16 @@ class StudentManager:
         self.email_entry = ttk.Entry(master, width=30)
         self.email_entry.grid(row=1, column=1, padx=5, pady=5)
 
-        self.add_button = ttk.Button(master, text="Добавить студента ➕", command=self.добавить_студента)
+        self.add_button = ttk.Button(master, text="Добавить студента ➕", command=self.add_student_gui)
         self.add_button.grid(row=2, column=0, columnspan=2, padx=5, pady=5, sticky='ew')
 
-        self.update_button = ttk.Button(master, text="Обновить данные 🔄", command=self.обновить_данные)
+        self.update_button = ttk.Button(master, text="Обновить данные 🔄", command=self.update_student_gui)
         self.update_button.grid(row=3, column=0, columnspan=2, padx=5, pady=5, sticky='ew')
 
-        self.delete_button = ttk.Button(master, text="Удалить студента 🗑️", command=self.удалить_студента)
+        self.delete_button = ttk.Button(master, text="Удалить студента 🗑️", command=self.delete_student_gui)
         self.delete_button.grid(row=4, column=0, columnspan=2, padx=5, pady=5, sticky='ew')
 
-        self.view_button = ttk.Button(master, text="Посмотреть всех 👀", command=self.показать_всех)
+        self.view_button = ttk.Button(master, text="Посмотреть всех 👀", command=self.show_all_students)
         self.view_button.grid(row=5, column=0, columnspan=2, padx=5, pady=5, sticky='ew')
 
         self.tree = ttk.Treeview(master, columns=('ID', 'Имя', 'Email'), show='headings')
@@ -41,15 +42,15 @@ class StudentManager:
         master.grid_columnconfigure(0, weight=1)
         master.grid_columnconfigure(1, weight=1)
 
-        self.показать_всех()
+        self.show_all_students()
 
-    def добавить_студента(self):
-        имя = self.name_entry.get().strip()
+    def add_student_gui(self):
+        name = self.name_entry.get().strip()
         email = self.email_entry.get().strip()
-        if имя and email:
+        if name and email:
             try:
-                добавить_студента(имя, email)
-                self.показать_всех()
+                add_student(name, email)
+                self.show_all_students()
                 self.name_entry.delete(0, END)
                 self.email_entry.delete(0, END)
                 messagebox.showinfo("✅ Успех", "Студент успешно добавлен!")
@@ -58,40 +59,40 @@ class StudentManager:
         else:
             messagebox.showwarning("⚠️ Предупреждение", "Заполните все поля!")
 
-    def показать_всех(self):
+    def show_all_students(self):
         for item in self.tree.get_children():
             self.tree.delete(item)
-        студенты = получить_всех_студентов()
-        for student in студенты:
+        students = get_all_students()
+        for student in students:
             self.tree.insert('', 'end', values=student)
 
-    def выбрать_студента(self):
+    def select_student(self):
         selected_item = self.tree.selection()
         if not selected_item:
             messagebox.showerror("❌ Ошибка", "Выберите студента")
             return None
         return self.tree.item(selected_item[0], 'values')
 
-    def обновить_данные(self):
-        студент = self.выбрать_студента()
-        if студент:
-            имя = self.name_entry.get().strip()
+    def update_student_gui(self):
+        student = self.select_student()
+        if student:
+            name = self.name_entry.get().strip()
             email = self.email_entry.get().strip()
-            if имя and email:
-                обновить_студента(студент[0], имя, email)
-                self.показать_всех()
+            if name and email:
+                update_student(student[0], name, email)
+                self.show_all_students()
                 self.name_entry.delete(0, END)
                 self.email_entry.delete(0, END)
                 messagebox.showinfo("✅ Успех", "Данные студента обновлены!")
             else:
                 messagebox.showwarning("⚠️ Предупреждение", "Заполните все поля!")
 
-    def удалить_студента(self):
-        студент = self.выбрать_студента()
-        if студент:
-            if messagebox.askyesno("Подтверждение", f"Удалить студента '{студент[1]}'?"):
-                удалить_студента(студент[0])
-                self.показать_всех()
+    def delete_student_gui(self):
+        student = self.select_student()
+        if student:
+            if messagebox.askyesno("Подтверждение", f"Удалить студента '{student[1]}'?"):
+                delete_student(student[0])
+                self.show_all_students()
                 self.name_entry.delete(0, END)
                 self.email_entry.delete(0, END)
                 messagebox.showinfo("✅ Успех", "Студент удален!")
